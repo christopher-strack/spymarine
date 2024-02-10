@@ -1,0 +1,14 @@
+{
+    "editor.defaultFormatter": "charliermarsh.ruff",
+
+    "python.testing.pytestArgs": ["."],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+
+    "mypy.enabled": true,
+    "mypy.runUsingActiveInterpreter": true,
+    "mypy.targets": [
+        "src/spymarine",
+        "tests"
+    ],
+}
