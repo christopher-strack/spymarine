@@ -1,4 +1,6 @@
 import logging
+import pathlib
+import pickle
 from typing import AsyncIterator
 
 from .communication import (
@@ -27,22 +29,55 @@ class DeviceReader:
     devices.
     """
 
-    def __init__(self, communication: Communication | None = None) -> None:
+    def __init__(
+        self,
+        devices_cache_path: pathlib.Path | str | None = None,
+        communication: Communication | None = None,
+    ) -> None:
+        """Creates a new device reader
+
+        If devices_cache_path is set the device information will be loaded from a file
+        instead of requested from the device. The cache needs to be recreated if the hardware
+        and device configuration have changed.
+        This speeds up the time to call open() significantly and can be used as a
+        workaround for firmware versions that do not communicate over Wifi stationary
+        mode reliably.
+        Use write_devices_cache() to create an initial cache file.
+        """
+
         self.communication = Communication() if communication is None else communication
         self.devices: list[Device] = []
         self.sensors: list[Sensor] = []
+        self._devices_cache_path = devices_cache_path
 
     async def open(self) -> None:
         """Opens the communication with a Simarine device and requests all device
-        information."""
+        information or loads them from a file.
+        """
 
         await self.communication.open()
-        self.devices = list([device async for device in self._request_devices()])
+
+        if self._devices_cache_path is not None:
+            with open(self._devices_cache_path, "rb") as f:
+                self._set_devices(pickle.load(f))
+        else:
+            self._set_devices(
+                list([device async for device in self._request_devices()])
+            )
 
     def close(self):
         """Closes an open communication"""
 
         self.communication.close()
+
+    def write_devices_cache(self, path: pathlib.Path | str):
+        """Write all existing devices into a file at the given path.
+
+        open() should be called before writing the cache.
+        """
+
+        with open(path, "wb") as f:
+            pickle.dump(self.devices, f)
 
     async def read_sensors(self) -> None:
         """Waits for a broadcast message and updates all sensor values"""
@@ -71,6 +106,7 @@ class DeviceReader:
         )
 
     async def _request_devices(self) -> AsyncIterator[Device]:
+        logging.info("Fetching device infos")
         sensor_start_index = 0
         for device_id in range(await self._request_device_count()):
             device_response = await self.communication.request(
@@ -83,9 +119,14 @@ class DeviceReader:
                 yield device
             sensor_start_index += device.SENSOR_INDEX_OFFSET
 
-            self.sensors.extend(
-                [sensor for _, sensor in device.sensors if sensor.sensor_id is not None]
-            )
+    def _set_devices(self, devices):
+        self.devices = devices
+        self.sensors = [
+            sensor
+            for device in self.devices
+            for _, sensor in device.sensors
+            if sensor.sensor_id is not None
+        ]
 
 
 def _parse_device_count_response(response: Message) -> int:

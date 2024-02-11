@@ -1,4 +1,5 @@
 import json
+import tempfile
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -61,3 +62,22 @@ async def test_jsonify_devices():
     async with DeviceReader(communication=communication) as reader:
         devices_json_str = json.dumps([device.asdict() for device in reader.devices])
         assert json.loads(devices_json_str) == data.DEVICES_JSON
+
+
+@pytest.mark.asyncio
+async def test_devices_cache() -> None:
+    with tempfile.NamedTemporaryFile() as temp_file:
+        devices_cache_path = temp_file.name
+        communication = make_mock_communication(
+            tcp_responses=[raw_data.DEVICE_COUNT_RESPONSE]
+            + raw_data.DEVICE_INFO_RESPONSES
+        )
+        async with DeviceReader(communication=communication) as reader:
+            assert reader.devices == data.DEVICES
+            reader.write_devices_cache(devices_cache_path)
+
+        async with DeviceReader(
+            devices_cache_path=devices_cache_path,
+            communication=make_mock_communication(),
+        ) as reader:
+            assert reader.devices == data.DEVICES
