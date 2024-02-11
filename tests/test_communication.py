@@ -104,6 +104,24 @@ async def test_request_message() -> None:
             assert response.type == MessageType.DEVICE_COUNT
 
 
+@pytest.mark.asyncio
+async def test_request_limit() -> None:
+    async with make_open_communication() as communication:
+        server = await asyncio.start_server(
+            handle_device_count_client,
+            communication.ip_address,
+            TEST_TCP_PORT,
+        )
+        async with server:
+            await server.start_serving()
+            await communication.request(Message(MessageType.DEVICE_COUNT))
+            with pytest.raises(TimeoutError):
+                async with asyncio.timeout(0.1):
+                    await communication.request(
+                        Message(MessageType.DEVICE_COUNT), request_limit=0.2
+                    )
+
+
 def test_parse_header():
     assert parse_header(
         b"\x00\x00\x00\x00\x00\xff\x41\x85\xde\xc3\x46\x01\x61\xff"

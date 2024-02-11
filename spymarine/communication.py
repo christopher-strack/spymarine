@@ -2,6 +2,7 @@ import asyncio
 import copy
 import logging
 import re
+import time
 from dataclasses import dataclass
 from enum import Enum
 
@@ -178,6 +179,7 @@ class Communication:
         self._udp_event = asyncio.Event()
         self._latest_udp_message = UdpMessage(b"", ("", 0))
         self._udp_transport: asyncio.transports.DatagramTransport | None = None
+        self._last_request_time: float | None = None
 
     async def open(self) -> None:
         """Discovers a Simarine device and opens a connection over UDP"""
@@ -209,24 +211,34 @@ class Communication:
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         self.close()  # pragma: no cover
 
-    async def request(self, message: Message) -> Message:
+    async def request(self, message: Message, request_limit: float = 0.1) -> Message:
         """Send a request to a Simarine device over TCP and returns a response
-        Raises ParsingError in case no valid response has been returned."""
+        Raises ParsingError in case no valid response has been returned.
+        Limits time between requests as defined by request_limit"""
 
         assert self.ip_address is not None
-        logging.debug("Connecting to %s:%i...", self.ip_address, self.tcp_port)
-        reader, writer = await asyncio.open_connection(self.ip_address, self.tcp_port)
 
-        logging.debug("Requesting %r", message.type.name)
-        writer.write(make_request(message))
-        await writer.drain()
+        try:
+            await self._wait_for_request_delay(request_limit)
 
-        data = await reader.read(1024)
-        response = parse_response(data)
+            logging.debug("Connecting to %s:%i...", self.ip_address, self.tcp_port)
+            reader, writer = await asyncio.open_connection(
+                self.ip_address, self.tcp_port
+            )
 
-        logging.debug("Closing connection")
-        writer.close()
-        await writer.wait_closed()
+            logging.debug("Requesting %r", message.type.name)
+            writer.write(make_request(message))
+            await writer.drain()
+
+            data = await reader.read(1024)
+            response = parse_response(data)
+
+            logging.debug("Closing connection")
+            writer.close()
+            await writer.wait_closed()
+
+        finally:
+            self._last_request_time = time.time()
 
         return response
 
@@ -246,6 +258,12 @@ class Communication:
 
         if self._udp_transport is None:
             self._udp_transport = await self._create_udp_server()
+
+    async def _wait_for_request_delay(self, request_limit: float):
+        if self._last_request_time is not None:
+            seconds_since_last_request = time.time() - self._last_request_time
+            if seconds_since_last_request < request_limit:
+                await asyncio.sleep(request_limit - seconds_since_last_request)
 
     async def _create_udp_server(self):
         """Create an UDP broadcast server that listens to incoming messages"""
