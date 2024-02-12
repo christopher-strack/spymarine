@@ -15,6 +15,11 @@ jobs:
       matrix:
         python-version: ["3.11"]
 
+    env:
+      FLIT_USERNAME: __token__
+      FLIT_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
+      FLIT_INDEX_URL: https://test.pypi.org/legacy/
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -36,3 +41,8 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Publish to TestPyPi
+      shell: bash
+      run: |
+        python -m flit publish
+
