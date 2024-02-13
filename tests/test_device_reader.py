@@ -2,6 +2,7 @@ import json
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+
 from spymarine.communication import Communication, parse_response
 from spymarine.device_reader import DeviceReader
 

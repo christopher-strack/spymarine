@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import pytest
+
 from spymarine.communication import (
     HEADER_LENGTH,
     Communication,
