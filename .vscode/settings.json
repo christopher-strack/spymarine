@@ -8,7 +8,7 @@
     "mypy.enabled": true,
     "mypy.runUsingActiveInterpreter": true,
     "mypy.targets": [
-        "src/spymarine",
+        "spymarine",
         "tests"
     ],
 }
