@@ -48,6 +48,11 @@ if __name__ == "__main__":
 Note that the cache needs to be regenerated if any hardware of app configuration
 change.
 
+## Known Issues
+
+- Non-ASCII characters in device names will not be represented correctly and replaced with a
+  placeholder. A non-standard encoding seems to be used.
+
 ## Author
 
 Christopher Strack
