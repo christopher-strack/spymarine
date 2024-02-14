@@ -43,6 +43,7 @@ if __name__ == "__main__":
 - Use `reader.write_devices_cache(path)` to create a devices cache
 - Construct a `DeviceReader` and using the `devices_cache_path` argument
   while in STA Wifi mode
+- See the [Devices Cache Example](examples/devices_cache.py)
 
 Note that the cache needs to be regenerated if any hardware of app configuration
 change.
