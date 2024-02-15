@@ -47,7 +47,7 @@ async def make_open_communication() -> AsyncGenerator[Communication, None]:
     communication = Communication(udp_port=TEST_UDP_PORT, tcp_port=TEST_TCP_PORT)
 
     async with asyncio.timeout(TIMEOUT):
-        await communication.init()
+        await communication.create_udp_server()
         await send_udp_broadcast(b"some message", TEST_UDP_PORT)
 
         try:
