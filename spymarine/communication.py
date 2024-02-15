@@ -181,12 +181,6 @@ class Communication:
         self._udp_transport: asyncio.transports.DatagramTransport | None = None
         self._last_request_time: float | None = None
 
-    async def open(self) -> None:
-        """Discovers a Simarine device and opens a connection over UDP"""
-
-        await self.create_udp_server()
-        await self.discover_ip()
-
     async def create_udp_server(self):
         """Create an UDP broadcast server that listens to incoming messages"""
 
@@ -220,7 +214,7 @@ class Communication:
             self.ip_address = None
 
     async def __aenter__(self):
-        await self.open()  # pragma: no cover
+        await self.create_udp_server()  # pragma: no cover
 
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         self.close()  # pragma: no cover
