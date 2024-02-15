@@ -215,7 +215,6 @@ class Communication:
 
         if self._udp_transport is not None:
             logging.info("Disconnecting from Simarine device...")
-            logging.debug("Stop UDP server")
             self._udp_transport.close()
             self._udp_transport = None
             self.ip_address = None
