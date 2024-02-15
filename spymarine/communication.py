@@ -136,7 +136,7 @@ TCP_PORT = 5001
 Address = tuple[str, int]
 
 
-class UdpMessage:
+class _UdpMessage:
     """Represents a UDP message. Used to share state between objects."""
 
     def __init__(self, data: bytes, addr: Address) -> None:
@@ -144,11 +144,11 @@ class UdpMessage:
         self.addr = addr
 
 
-class UDPServerProtocol(asyncio.DatagramProtocol):
+class _UDPServerProtocol(asyncio.DatagramProtocol):
     """Implements a UDP protocol that notifies the given event when a new UDP message
     is received and writes it to the given message."""
 
-    def __init__(self, event: asyncio.Event, message: UdpMessage) -> None:
+    def __init__(self, event: asyncio.Event, message: _UdpMessage) -> None:
         self.event = event
         self.message = message
 
@@ -177,7 +177,7 @@ class Communication:
         self.ip_address: str | None = None
 
         self._udp_event = asyncio.Event()
-        self._latest_udp_message = UdpMessage(b"", ("", 0))
+        self._latest_udp_message = _UdpMessage(b"", ("", 0))
         self._udp_transport: asyncio.transports.DatagramTransport | None = None
         self._last_request_time: float | None = None
 
@@ -271,13 +271,13 @@ class Communication:
         logging.debug("Start UDP broadcast server on port %s", self.udp_port)
         loop = asyncio.get_event_loop()
         transport, _ = await loop.create_datagram_endpoint(
-            lambda: UDPServerProtocol(self._udp_event, self._latest_udp_message),
+            lambda: _UDPServerProtocol(self._udp_event, self._latest_udp_message),
             local_addr=("0.0.0.0", self.udp_port),
             reuse_port=True,
         )
         return transport
 
-    async def _receive_udp(self) -> UdpMessage:
+    async def _receive_udp(self) -> _UdpMessage:
         """Waits until the next UDP broadcast message is received and returns it"""
 
         logging.debug("Waiting for UDP broadcast message")
