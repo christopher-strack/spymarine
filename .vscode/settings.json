@@ -8,6 +8,7 @@
     "mypy.enabled": true,
     "mypy.runUsingActiveInterpreter": true,
     "mypy.targets": [
+        "examples",
         "spymarine",
         "tests"
     ],
