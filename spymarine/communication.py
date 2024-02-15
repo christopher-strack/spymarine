@@ -185,14 +185,7 @@ class Communication:
         """Discovers a Simarine device and opens a connection over UDP"""
 
         await self.create_udp_server()
-
-        if self.ip_address is None:
-            logging.info("Connecting to Simarine device...")
-
-            udp_message = await self._receive_udp()
-            self.ip_address, _ = udp_message.addr
-
-            logging.info("Found device at %s:%s", self.ip_address, self.tcp_port)
+        await self.discover_ip()
 
     async def create_udp_server(self):
         """Create an UDP broadcast server that listens to incoming messages"""
@@ -205,6 +198,17 @@ class Communication:
                 local_addr=("0.0.0.0", self.udp_port),
                 reuse_port=True,
             )
+
+    async def discover_ip(self):
+        """Find the Simarine device by waiting for a UDP broadcast message"""
+
+        if self.ip_address is None:
+            logging.info("Discovering IP of Simarine device...")
+
+            udp_message = await self._receive_udp()
+            self.ip_address, _ = udp_message.addr
+
+            logging.info("Found device at %s:%s", self.ip_address, self.tcp_port)
 
     def close(self) -> None:
         """Closes an open connection"""
