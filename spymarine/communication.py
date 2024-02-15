@@ -127,10 +127,10 @@ def make_device_request(device_id: int) -> Message:
 
 
 # UDP port used by Simarine devices to announce sensor changes
-UDP_PORT = 43210
+DEFAULT_UDP_PORT = 43210
 
 # TCP port used by Simarine devices to exchange request/response messages
-TCP_PORT = 5001
+DEFAULT_TCP_PORT = 5001
 
 
 Address = tuple[str, int]
@@ -171,7 +171,7 @@ class Communication:
     can be used to discover the device. TCP is used to request specific
     information and probably make changes to the device."""
 
-    def __init__(self, udp_port=UDP_PORT, tcp_port=TCP_PORT) -> None:
+    def __init__(self, udp_port=DEFAULT_UDP_PORT, tcp_port=DEFAULT_TCP_PORT) -> None:
         self.udp_port = udp_port
         self.tcp_port = tcp_port
         self.ip_address: str | None = None
