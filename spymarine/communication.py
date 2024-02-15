@@ -184,8 +184,7 @@ class Communication:
     async def open(self) -> None:
         """Discovers a Simarine device and opens a connection over UDP"""
 
-        if self._udp_transport is None:
-            await self.init()  # pragma: no cover
+        await self.create_udp_server()
 
         if self.ip_address is None:
             logging.info("Connecting to Simarine device...")
@@ -252,30 +251,23 @@ class Communication:
         logging.debug("Received broadcast message %r", response.type.name)
         return response
 
-    async def init(self):
-        """Initializes the communication by starting the UDP server.
-        Automatically done by open()"""
-
-        if self._udp_transport is None:
-            self._udp_transport = await self._create_udp_server()
-
     async def _wait_for_request_delay(self, request_limit: float):
         if self._last_request_time is not None:
             seconds_since_last_request = time.time() - self._last_request_time
             if seconds_since_last_request < request_limit:
                 await asyncio.sleep(request_limit - seconds_since_last_request)
 
-    async def _create_udp_server(self):
+    async def create_udp_server(self):
         """Create an UDP broadcast server that listens to incoming messages"""
 
-        logging.debug("Start UDP broadcast server on port %s", self.udp_port)
-        loop = asyncio.get_event_loop()
-        transport, _ = await loop.create_datagram_endpoint(
-            lambda: _UDPServerProtocol(self._udp_event, self._latest_udp_message),
-            local_addr=("0.0.0.0", self.udp_port),
-            reuse_port=True,
-        )
-        return transport
+        if self._udp_transport is None:
+            logging.debug("Start UDP broadcast server on port %s", self.udp_port)
+            loop = asyncio.get_event_loop()
+            self._udp_transport, _ = await loop.create_datagram_endpoint(
+                lambda: _UDPServerProtocol(self._udp_event, self._latest_udp_message),
+                local_addr=("0.0.0.0", self.udp_port),
+                reuse_port=True,
+            )
 
     async def _receive_udp(self) -> _UdpMessage:
         """Waits until the next UDP broadcast message is received and returns it"""
