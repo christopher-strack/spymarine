@@ -194,6 +194,18 @@ class Communication:
 
             logging.info("Found device at %s:%s", self.ip_address, self.tcp_port)
 
+    async def create_udp_server(self):
+        """Create an UDP broadcast server that listens to incoming messages"""
+
+        if self._udp_transport is None:
+            logging.debug("Start UDP broadcast server on port %s", self.udp_port)
+            loop = asyncio.get_event_loop()
+            self._udp_transport, _ = await loop.create_datagram_endpoint(
+                lambda: _UDPServerProtocol(self._udp_event, self._latest_udp_message),
+                local_addr=("0.0.0.0", self.udp_port),
+                reuse_port=True,
+            )
+
     def close(self) -> None:
         """Closes an open connection"""
 
@@ -256,18 +268,6 @@ class Communication:
             seconds_since_last_request = time.time() - self._last_request_time
             if seconds_since_last_request < request_limit:
                 await asyncio.sleep(request_limit - seconds_since_last_request)
-
-    async def create_udp_server(self):
-        """Create an UDP broadcast server that listens to incoming messages"""
-
-        if self._udp_transport is None:
-            logging.debug("Start UDP broadcast server on port %s", self.udp_port)
-            loop = asyncio.get_event_loop()
-            self._udp_transport, _ = await loop.create_datagram_endpoint(
-                lambda: _UDPServerProtocol(self._udp_event, self._latest_udp_message),
-                local_addr=("0.0.0.0", self.udp_port),
-                reuse_port=True,
-            )
 
     async def _receive_udp(self) -> _UdpMessage:
         """Waits until the next UDP broadcast message is received and returns it"""
