@@ -55,12 +55,13 @@ class DeviceReader:
         information or loads them from a file.
         """
 
-        await self.communication.open()
+        await self.communication.create_udp_server()
 
         if self._devices_cache_path is not None:
             with open(self._devices_cache_path, "rb") as f:
                 self._set_devices(pickle.load(f))
         else:
+            await self.communication.discover_ip()
             self._set_devices(
                 list([device async for device in self._request_devices()])
             )
