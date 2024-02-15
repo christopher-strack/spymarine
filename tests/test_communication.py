@@ -51,7 +51,7 @@ async def make_open_communication() -> AsyncGenerator[Communication, None]:
         await send_udp_broadcast(b"some message", TEST_UDP_PORT)
 
         try:
-            await communication.open()
+            await communication.discover_ip()
             assert communication.ip_address is not None
 
             yield communication
