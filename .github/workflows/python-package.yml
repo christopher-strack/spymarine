@@ -22,6 +22,7 @@ jobs:
       uses: ./.github/actions/setup-python-poetry
       with:
         python-version: ${{matrix.python-version}}
+        poetry-version: 1.7.1
 
     - name: Linting with ruff
       run: |
