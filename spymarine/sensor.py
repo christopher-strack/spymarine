@@ -72,7 +72,7 @@ class CurrentSensor(Sensor):
     UNIT: ClassVar[str] = "ampere"
 
     def convert(self, p: PropertyValue) -> float:
-        return p.second / 100.0 if p.first == -1 else 0.0
+        return p.second / 100.0
 
 
 @dataclass
