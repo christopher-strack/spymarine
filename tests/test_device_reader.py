@@ -31,15 +31,22 @@ async def test_open_requests_devices() -> None:
 
 
 @pytest.mark.asyncio
-async def test_read_sensors_updates_sensor_values() -> None:
+@pytest.mark.parametrize(
+    "sensor_response,sensor_data",
+    [
+        (raw_data.STATE_RESPONSE, data.SENSOR_DATA),
+        (raw_data.STATE_RESPONSE2, data.SENSOR_DATA2),
+    ],
+)
+async def test_read_sensors_updates_sensor_values(sensor_response, sensor_data) -> None:
     communication = make_mock_communication(
         tcp_responses=[raw_data.DEVICE_COUNT_RESPONSE] + raw_data.DEVICE_INFO_RESPONSES,
-        udp_responses=[raw_data.STATE_RESPONSE],
+        udp_responses=[sensor_response],
     )
 
     async with DeviceReader(communication=communication) as reader:
         await reader.read_sensors()
-        assert reader.sensors == data.SENSOR_DATA
+        assert reader.sensors == sensor_data
 
 
 @pytest.mark.asyncio
