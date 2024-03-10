@@ -128,6 +128,10 @@ def test_parse_header():
     ) == Header(type=b"\x41", length=353)
 
     assert parse_header(
+        b"\x00\x00\x00\x00\x00\xff\x02\x7f\xfc\xbb\x1f\x00\x11\xff"
+    ) == Header(type=b"\x02", length=17)
+
+    assert parse_header(
         b"\x00\x00\x00\x00\x00\xff\xb0\x85\xde\xc3\x46\x01\x14\xff"
     ) == Header(type=b"\xb0", length=276)
 

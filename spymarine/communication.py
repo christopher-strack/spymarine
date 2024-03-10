@@ -72,7 +72,7 @@ def parse_header(data: bytes) -> Header:
     """
 
     if match := re.match(
-        b"\x00\x00\x00\x00\x00\xff(.)\x85\xde\xc3\x46(..)\xff", data[:HEADER_LENGTH]
+        b"\x00\x00\x00\x00\x00\xff(.)....(..)\xff", data[:HEADER_LENGTH]
     ):
         return Header(type=match[1], length=int.from_bytes(match[2]))
     else:
