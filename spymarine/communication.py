@@ -219,7 +219,7 @@ class Communication:
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         self.close()  # pragma: no cover
 
-    async def request(self, message: Message, request_limit: float = 0.1) -> Message:
+    async def request(self, message: Message, request_limit: float = 0.01) -> Message:
         """Send a request to a Simarine device over TCP and returns a response
         Raises ParsingError in case no valid response has been returned.
         Limits time between requests as defined by request_limit"""
