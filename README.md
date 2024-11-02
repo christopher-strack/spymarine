@@ -4,7 +4,7 @@ A library for spying on Simarine devices and their sensor values using asyncio a
 
 Based on the fantastic reverse engineering work of https://github.com/htool/pico2signalk
 
-Only tested with Simarine Pico rev2
+Only tested with Simarine Pico rev2 and firmware 1.17
 
 ## Library Installation
 
@@ -39,14 +39,12 @@ if __name__ == "__main__":
 
 #### Q: `DeviceReader` is stuck while establishing a connection when using STA Wifi mode
 
-- Switch into AP Wifi mode and connect to the Wifi
-- Use `reader.write_devices_cache(path)` to create a devices cache
-- Construct a `DeviceReader` and using the `devices_cache_path` argument
-  while in STA Wifi mode
-- See the [Devices Cache Example](examples/devices_cache.py)
+- Update the Pico's firmware
 
-Note that the cache needs to be regenerated if any hardware of app configuration
-change.
+#### Q: A ConnectionRefusedError error is thrown
+
+- Update the Pico's firmware
+- Try increasing the `request_limit` in the `Communication`
 
 ## Known Issues
 
