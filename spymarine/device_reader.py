@@ -62,6 +62,7 @@ class DeviceReader:
                 self._set_devices(pickle.load(f))
         else:
             await self.communication.discover_ip()
+            await self.communication.connect()
             self._set_devices(
                 list([device async for device in self._request_devices()])
             )

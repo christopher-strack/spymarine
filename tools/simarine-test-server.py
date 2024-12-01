@@ -60,13 +60,16 @@ class SimarineTestServer:
             await server.serve_forever()
 
     async def _handle_client(self, reader, writer):
-        data = await reader.read(1024)
-        addr = writer.get_extra_info("peername")
-        if response := await self._handle_request(data, addr):
-            writer.write(response)
-            await writer.drain()
+        while not writer.is_closing():
+            data = await reader.read(1024)
+            if data:
+                addr = writer.get_extra_info("peername")
+                if response := await self._handle_request(data, addr):
+                    writer.write(response)
+                    await writer.drain()
+            else:
+                writer.close()
 
-        writer.close()
         await writer.wait_closed()
 
     async def _handle_request(self, data, addr):

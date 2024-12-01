@@ -181,6 +181,9 @@ class Communication:
         self._udp_transport: asyncio.transports.DatagramTransport | None = None
         self._last_request_time: float | None = None
 
+        self._tcp_reader: asyncio.StreamReader | None = None
+        self._tcp_writer: asyncio.StreamWriter | None = None
+
     async def create_udp_server(self):
         """Create an UDP broadcast server that listens to incoming messages"""
 
@@ -204,46 +207,46 @@ class Communication:
 
             logging.info("Found device at %s:%s", self.ip_address, self.tcp_port)
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Closes an open connection"""
 
-        if self._udp_transport is not None:
+        if self._tcp_writer is not None:
             logging.info("Disconnecting from Simarine device...")
+            self._tcp_writer.close()
+            await self._tcp_writer.wait_closed()
+
+        if self._udp_transport is not None:
             self._udp_transport.close()
             self._udp_transport = None
             self.ip_address = None
+
+    async def connect(self) -> None:
+        logging.debug("Connecting to %s:%i...", self.ip_address, self.tcp_port)
+        self._tcp_reader, self._tcp_writer = await asyncio.open_connection(
+            self.ip_address, self.tcp_port
+        )
 
     async def __aenter__(self):
         await self.create_udp_server()  # pragma: no cover
 
     async def __aexit__(self, exc_t, exc_v, exc_tb):
-        self.close()  # pragma: no cover
+        await self.close()  # pragma: no cover
 
-    async def request(self, message: Message, request_limit: float = 0.01) -> Message:
+    async def request(self, message: Message) -> Message:
         """Send a request to a Simarine device over TCP and returns a response
-        Raises ParsingError in case no valid response has been returned.
-        Limits time between requests as defined by request_limit"""
+        Raises ParsingError in case no valid response has been returned."""
 
         assert self.ip_address is not None
+        assert self._tcp_reader is not None
+        assert self._tcp_writer is not None
 
         try:
-            await self._wait_for_request_delay(request_limit)
-
-            logging.debug("Connecting to %s:%i...", self.ip_address, self.tcp_port)
-            reader, writer = await asyncio.open_connection(
-                self.ip_address, self.tcp_port
-            )
-
             logging.debug("Requesting %r", message.type.name)
-            writer.write(make_request(message))
-            await writer.drain()
+            self._tcp_writer.write(make_request(message))
+            await self._tcp_writer.drain()
 
-            data = await reader.read(1024)
+            data = await self._tcp_reader.read(1024)
             response = parse_response(data)
-
-            logging.debug("Closing connection")
-            writer.close()
-            await writer.wait_closed()
 
         finally:
             self._last_request_time = time.time()
@@ -259,12 +262,6 @@ class Communication:
         response = parse_response(udp_message.data)
         logging.debug("Received broadcast message %r", response.type.name)
         return response
-
-    async def _wait_for_request_delay(self, request_limit: float):
-        if self._last_request_time is not None:
-            seconds_since_last_request = time.time() - self._last_request_time
-            if seconds_since_last_request < request_limit:
-                await asyncio.sleep(request_limit - seconds_since_last_request)
 
     async def _receive_udp(self) -> _UdpMessage:
         """Waits until the next UDP broadcast message is received and returns it"""
