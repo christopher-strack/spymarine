@@ -1,6 +1,4 @@
 import logging
-import pathlib
-import pickle
 from typing import AsyncIterator
 
 from .communication import (
@@ -29,26 +27,12 @@ class DeviceReader:
     devices.
     """
 
-    def __init__(
-        self,
-        devices_cache_path: pathlib.Path | str | None = None,
-        communication: Communication | None = None,
-    ) -> None:
-        """Creates a new device reader
-
-        If devices_cache_path is set the device information will be loaded from a file
-        instead of requested from the device. The cache needs to be recreated if the hardware
-        and device configuration have changed.
-        This speeds up the time to call open() significantly and can be used as a
-        workaround for firmware versions that do not communicate over Wifi stationary
-        mode reliably.
-        Use write_devices_cache() to create an initial cache file.
-        """
+    def __init__(self, communication: Communication | None = None) -> None:
+        """Creates a new device reader"""
 
         self.communication = Communication() if communication is None else communication
         self.devices: list[Device] = []
         self.sensors: list[Sensor] = []
-        self._devices_cache_path = devices_cache_path
 
     async def open(self) -> None:
         """Opens the communication with a Simarine device and requests all device
@@ -56,30 +40,14 @@ class DeviceReader:
         """
 
         await self.communication.create_udp_server()
-
-        if self._devices_cache_path is not None:
-            with open(self._devices_cache_path, "rb") as f:
-                self._set_devices(pickle.load(f))
-        else:
-            await self.communication.discover_ip()
-            await self.communication.connect()
-            self._set_devices(
-                list([device async for device in self._request_devices()])
-            )
+        await self.communication.discover_ip()
+        await self.communication.connect()
+        self._set_devices(list([device async for device in self._request_devices()]))
 
     def close(self):
         """Closes an open communication"""
 
         self.communication.close()
-
-    def write_devices_cache(self, path: pathlib.Path | str):
-        """Write all existing devices into a file at the given path.
-
-        open() should be called before writing the cache.
-        """
-
-        with open(path, "wb") as f:
-            pickle.dump(self.devices, f)
 
     async def read_sensors(self) -> None:
         """Waits for a broadcast message and updates all sensor values"""
