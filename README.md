@@ -41,11 +41,6 @@ if __name__ == "__main__":
 
 - Update the Pico's firmware
 
-#### Q: A ConnectionRefusedError error is thrown
-
-- Update the Pico's firmware
-- Try increasing the `request_limit` in the `Communication`
-
 ## Known Issues
 
 - Non-ASCII characters in device names will not be represented correctly and replaced with a

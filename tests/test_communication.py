@@ -53,28 +53,48 @@ async def make_open_communication() -> AsyncGenerator[Communication, None]:
         try:
             await communication.discover_ip()
             assert communication.ip_address is not None
+            await communication.connect()
 
             yield communication
         finally:
-            communication.close()
+            await communication.close()
+
+
+@asynccontextmanager
+async def open_test_server(handler):
+    server = await asyncio.start_server(
+        handler,
+        "0.0.0.0",
+        TEST_TCP_PORT,
+    )
+    async with server:
+        await server.start_serving()
+
+        yield
+
+
+async def null_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    writer.close()
 
 
 @pytest.mark.asyncio
 async def test_receive_broadcast_message() -> None:
-    async with make_open_communication() as communication:
-        await send_udp_broadcast(STATE_RESPONSE, TEST_UDP_PORT)
-        response = await communication.receive_broadcast()
-        assert response == Message(
-            type=MessageType.SENSOR_STATE, data=STATE_RESPONSE[HEADER_LENGTH:-2]
-        )
+    async with open_test_server(null_handler):
+        async with make_open_communication() as communication:
+            await send_udp_broadcast(STATE_RESPONSE, TEST_UDP_PORT)
+            response = await communication.receive_broadcast()
+            assert response == Message(
+                type=MessageType.SENSOR_STATE, data=STATE_RESPONSE[HEADER_LENGTH:-2]
+            )
 
 
 @pytest.mark.asyncio
 async def test_receive_invalid_broadcast_message() -> None:
-    async with make_open_communication() as communication:
-        await send_udp_broadcast(b"not a valid message", TEST_UDP_PORT)
-        with pytest.raises(ParsingError):
-            await communication.receive_broadcast()
+    async with open_test_server(null_handler):
+        async with make_open_communication() as communication:
+            await send_udp_broadcast(b"not a valid message", TEST_UDP_PORT)
+            with pytest.raises(ParsingError):
+                await communication.receive_broadcast()
 
 
 async def handle_device_count_client(
@@ -92,34 +112,10 @@ async def handle_device_count_client(
 
 @pytest.mark.asyncio
 async def test_request_message() -> None:
-    async with make_open_communication() as communication:
-        server = await asyncio.start_server(
-            handle_device_count_client,
-            communication.ip_address,
-            TEST_TCP_PORT,
-        )
-        async with server:
-            await server.start_serving()
+    async with open_test_server(handle_device_count_client):
+        async with make_open_communication() as communication:
             response = await communication.request(Message(MessageType.DEVICE_COUNT))
             assert response.type == MessageType.DEVICE_COUNT
-
-
-@pytest.mark.asyncio
-async def test_request_limit() -> None:
-    async with make_open_communication() as communication:
-        server = await asyncio.start_server(
-            handle_device_count_client,
-            communication.ip_address,
-            TEST_TCP_PORT,
-        )
-        async with server:
-            await server.start_serving()
-            await communication.request(Message(MessageType.DEVICE_COUNT))
-            with pytest.raises(TimeoutError):
-                async with asyncio.timeout(0.1):
-                    await communication.request(
-                        Message(MessageType.DEVICE_COUNT), request_limit=0.2
-                    )
 
 
 def test_parse_header():
@@ -169,5 +165,5 @@ def test_parse_response():
 
 
 def test_crc():
-    message = b"\x00\x00\x00\x00\x00\xFF\x02\x04\x8C\x55\x4B\x00\x03\xFF"
+    message = b"\x00\x00\x00\x00\x00\xff\x02\x04\x8c\x55\x4b\x00\x03\xff"
     assert crc(message[1:-1]) == 43200
