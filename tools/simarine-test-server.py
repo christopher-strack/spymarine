@@ -61,7 +61,7 @@ class SimarineTestServer:
 
     async def _handle_client(self, reader, writer):
         while not writer.is_closing():
-            data = await reader.read(1024)
+            data = await reader.read(2048)
             if data:
                 addr = writer.get_extra_info("peername")
                 if response := await self._handle_request(data, addr):

@@ -102,7 +102,7 @@ async def handle_device_count_client(
 ):
     device_count_request = make_request(Message(MessageType.DEVICE_COUNT))
 
-    data = await reader.read(1024)
+    data = await reader.read(2048)
     assert data == device_count_request
 
     writer.write(DEVICE_COUNT_RESPONSE)
