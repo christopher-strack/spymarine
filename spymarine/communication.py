@@ -245,7 +245,7 @@ class Communication:
             self._tcp_writer.write(make_request(message))
             await self._tcp_writer.drain()
 
-            data = await self._tcp_reader.read(1024)
+            data = await self._tcp_reader.read(2048)
             response = parse_response(data)
 
         finally:
