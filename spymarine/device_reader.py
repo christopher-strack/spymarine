@@ -44,10 +44,10 @@ class DeviceReader:
         await self.communication.connect()
         self._set_devices(list([device async for device in self._request_devices()]))
 
-    def close(self):
+    async def close(self):
         """Closes an open communication"""
 
-        self.communication.close()
+        await self.communication.close()
 
     async def read_sensors(self) -> None:
         """Waits for a broadcast message and updates all sensor values"""
@@ -68,7 +68,7 @@ class DeviceReader:
         return self
 
     async def __aexit__(self, exc_t, exc_v, exc_tb):
-        self.close()
+        await self.close()
 
     async def _request_device_count(self) -> int:
         return _parse_device_count_response(
