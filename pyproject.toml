@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spymarine"
-version = "0.6.0"
+version = "0.6.1"
 description = "Communicate with Simarine devices using asyncio and Python"
 authors = ["Christopher Strack <christopher.strack@gmail.com>"]
 license = "MIT"
