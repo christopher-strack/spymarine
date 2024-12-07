@@ -1,5 +1,5 @@
 import json
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -12,7 +12,7 @@ from . import data, raw_data
 def make_mock_communication(tcp_responses=[], udp_responses=[]) -> AsyncMock:
     communication = AsyncMock(spec=Communication)
     communication.open = AsyncMock()
-    communication.close = Mock()
+    communication.close = AsyncMock()
     communication.request = AsyncMock(side_effect=map(parse_response, tcp_responses))
     communication.receive_broadcast = AsyncMock(
         side_effect=map(parse_response, udp_responses)
