@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 import asyncio
+import logging
 
 import spymarine
 
 
 async def main():
+    logging.basicConfig(level=logging.INFO)
+
     # Print all devices and their latest sensor values every second
     async with spymarine.DeviceReader() as reader:
         while True:
