@@ -9,7 +9,7 @@
     "mypy.runUsingActiveInterpreter": true,
     "mypy.targets": [
         "examples",
-        "spymarine",
+        "src/spymarine",
         "tests"
     ],
 }
