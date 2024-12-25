@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass, fields
 from enum import Enum
 from typing import Any, ClassVar, Iterable
@@ -200,10 +201,14 @@ def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> De
         return CurrentDevice(device_id=device_id, name=property_dict.strings[3])
     elif device_type == 3:
         return TemperatureDevice(device_id=device_id, name=property_dict.strings[3])
+    elif device_type == 4:
+        return UnknownDevice(device_id=device_id, name="<unknown>")
     elif device_type == 5:
         return Barometer(device_id=device_id, name=property_dict.strings[3])
     elif device_type == 6:
         return ResistiveDevice(device_id=device_id, name=property_dict.strings[3])
+    elif device_type == 7:
+        return UnknownDevice(device_id=device_id, name="<unknown>")
     elif device_type == 8:
         return Tank(
             device_id=device_id,
@@ -218,5 +223,10 @@ def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> De
             capacity=property_dict.values[5][1] / 100.0,
             battery_type=BatteryType(property_dict.values[8][1]),
         )
+    elif device_type == 10:
+        return UnknownDevice(device_id=device_id, name="<unknown>")
+    elif device_type == 14:
+        return UnknownDevice(device_id=device_id, name="<unknown>")
 
+    logging.error("Invalid device type %d", device_type)
     return UnknownDevice(device_id=device_id, name="<unknown>")
