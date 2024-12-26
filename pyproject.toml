@@ -1,6 +1,6 @@
 [project]
 name = "spymarine"
-version = "0.6.1"
+version = "0.6.2"
 description = "Communicate with Simarine devices using asyncio and Python"
 authors = [{ name = "Christopher Strack", email = "christopher.strack@gmail.com" }]
 license = "MIT"
