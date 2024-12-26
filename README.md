@@ -46,6 +46,11 @@ if __name__ == "__main__":
 - Non-ASCII characters in device names will not be represented correctly and replaced with a
   placeholder. A non-standard encoding seems to be used.
 
+## Reporting issues
+
+- Run `tools/make-debug-report.py`
+- Create a new issue on GitHub and attach the debug.log
+
 ## Author
 
 Christopher Strack
