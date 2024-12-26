@@ -241,12 +241,13 @@ class Communication:
         assert self._tcp_writer is not None
 
         try:
-            logging.debug("Requesting %r", message.type.name)
+            logging.debug("Request %r", message.type.name)
             self._tcp_writer.write(make_request(message))
             await self._tcp_writer.drain()
 
             data = await self._tcp_reader.read(2048)
             response = parse_response(data)
+            logging.debug("Response %r", response)
 
         finally:
             self._last_request_time = time.time()
@@ -260,7 +261,7 @@ class Communication:
         assert self._udp_transport is not None
         udp_message = await self._receive_udp()
         response = parse_response(udp_message.data)
-        logging.debug("Received broadcast message %r", response.type.name)
+        logging.debug("Received %r", response)
         return response
 
     async def _receive_udp(self) -> _UdpMessage:
