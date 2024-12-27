@@ -6,7 +6,7 @@ import pytest
 from spymarine.communication import Communication, parse_response
 from spymarine.device_reader import DeviceReader
 
-from . import data, raw_data
+from . import data, data2, raw_data, raw_data2
 
 
 def make_mock_communication(tcp_responses=[], udp_responses=[]) -> AsyncMock:
@@ -30,6 +30,16 @@ async def test_open_requests_devices() -> None:
 
 
 @pytest.mark.asyncio
+async def test_open_requests_devices2() -> None:
+    communication = make_mock_communication(
+        tcp_responses=[raw_data2.DEVICE_COUNT_RESPONSE]
+        + raw_data2.DEVICE_INFO_RESPONSES
+    )
+    async with DeviceReader(communication=communication) as reader:
+        assert reader.devices == data2.DEVICES
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "sensor_response,sensor_data",
     [
@@ -46,6 +56,19 @@ async def test_read_sensors_updates_sensor_values(sensor_response, sensor_data) 
     async with DeviceReader(communication=communication) as reader:
         await reader.read_sensors()
         assert reader.sensors == sensor_data
+
+
+@pytest.mark.asyncio
+async def test_read_sensors_updates_sensor_values2() -> None:
+    communication = make_mock_communication(
+        tcp_responses=[raw_data2.DEVICE_COUNT_RESPONSE]
+        + raw_data2.DEVICE_INFO_RESPONSES,
+        udp_responses=[raw_data2.STATE_RESPONSE],
+    )
+
+    async with DeviceReader(communication=communication) as reader:
+        await reader.read_sensors()
+        assert reader.sensors == data.SENSOR_DATA
 
 
 @pytest.mark.asyncio
