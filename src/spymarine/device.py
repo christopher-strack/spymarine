@@ -134,6 +134,17 @@ class Tank(Device):
 
 
 @dataclass
+class FuelTank(Device):
+    TYPE: ClassVar[str] = "fuel_tank"
+    SENSOR_INDEX_OFFSET: ClassVar[int] = 2
+
+    capacity: float
+
+    volume: TankVolumeSensor = sensor_field(TankVolumeSensor, 0)
+    level: TankLevelSensor = sensor_field(TankLevelSensor, 0)
+
+
+@dataclass
 class TemperatureDevice(Device):
     TYPE: ClassVar[str] = "temperature"
     SENSOR_INDEX_OFFSET: ClassVar[int] = 1
@@ -210,11 +221,18 @@ def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> De
     elif device_type == 7:
         return UnknownDevice(device_id=device_id, name="<unknown>")
     elif device_type == 8:
+        fluid_type = FluidType(property_dict.values[6][1])
+        if fluid_type == FluidType.FUEL:
+            return FuelTank(
+                device_id=device_id,
+                name=property_dict.strings[3],
+                capacity=property_dict.values[7][1] / 10.0,
+            )
         return Tank(
             device_id=device_id,
             name=property_dict.strings[3],
             capacity=property_dict.values[7][1] / 10.0,
-            fluid_type=FluidType(property_dict.values[6][1]),
+            fluid_type=fluid_type,
         )
     elif device_type == 9:
         return Battery(
@@ -224,6 +242,8 @@ def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> De
             battery_type=BatteryType(property_dict.values[8][1]),
         )
     elif device_type == 10:
+        return UnknownDevice(device_id=device_id, name="<unknown>")
+    elif device_type == 13:
         return UnknownDevice(device_id=device_id, name="<unknown>")
     elif device_type == 14:
         return UnknownDevice(device_id=device_id, name="<unknown>")
