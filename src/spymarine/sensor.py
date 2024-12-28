@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Type
@@ -31,8 +32,12 @@ class Sensor(ABC):
         """Update the sensor value based on a PropertyDict from a state update"""
 
         assert self.state_index is not None
-        p = property_dict.values[self.state_index]
-        self.value = self.convert(p)
+
+        try:
+            p = property_dict.values[self.state_index]
+            self.value = self.convert(p)
+        except KeyError:
+            logging.error("No sensor value for state index %s", self.state_index)
 
     @abstractmethod
     def convert(self, p: PropertyValue) -> float:
