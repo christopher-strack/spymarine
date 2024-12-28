@@ -17,7 +17,8 @@ async def main():
     print("Start creating a debug report in debug.log")
 
     async with spymarine.DeviceReader() as reader:
-        await reader.read_sensors()
+        for _ in range(4):
+            await reader.read_sensors()
 
     print("Finished")
 
