@@ -128,5 +128,13 @@ class CapacitySensor(Sensor):
         return p.second / 100.0
 
 
+@dataclass
+class InclinometerSensor(Sensor):
+    UNIT: ClassVar[str] = "degree"
+
+    def convert(self, p: PropertyValue) -> float:
+        return p.second / 10.0
+
+
 def sensor_field(sensory_cls: Type[Sensor], state_offset=0):
     return field(default_factory=lambda: sensory_cls(state_offset=state_offset))
