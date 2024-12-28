@@ -9,6 +9,7 @@ from .sensor import (
     CapacitySensor,
     ChargeSensor,
     CurrentSensor,
+    InclinometerSensor,
     ResistiveSensor,
     Sensor,
     TankLevelSensor,
@@ -32,6 +33,11 @@ class BatteryType(Enum):
     DEEP_CYCLE = 4
     GEL = 5
     LIFEPO4 = 6
+
+
+class InclinometerType(Enum):
+    PITCH = 1
+    ROLL = 2
 
 
 @dataclass
@@ -185,6 +191,16 @@ class ResistiveDevice(Device):
 
 
 @dataclass
+class Inclinometer(Device):
+    TYPE: ClassVar[str] = "inclinometer"
+    SENSOR_INDEX_OFFSET: ClassVar[int] = 1
+
+    inclinometer_type: InclinometerType
+
+    degree: Sensor = sensor_field(InclinometerSensor)
+
+
+@dataclass
 class NullDevice(Device):
     TYPE: ClassVar[str] = "null"
     SENSOR_INDEX_OFFSET: ClassVar[int] = 0
@@ -194,6 +210,12 @@ class NullDevice(Device):
 class UnknownDevice(Device):
     TYPE: ClassVar[str] = "unknown"
     SENSOR_INDEX_OFFSET: ClassVar[int] = 1
+
+
+def property_dict_values(property_dict):
+    return [
+        (key, value.first, value.second) for key, value in property_dict.values.items()
+    ]
 
 
 def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> Device:
@@ -244,7 +266,12 @@ def device_from_property_dict(device_id: int, property_dict: PropertyDict) -> De
     elif device_type == 10:
         return UnknownDevice(device_id=device_id, name="<unknown>")
     elif device_type == 13:
-        return UnknownDevice(device_id=device_id, name="<unknown>")
+        inclinometer_type = InclinometerType(property_dict.values[3][1])
+        return Inclinometer(
+            device_id=device_id,
+            name=f"Inlinometer {inclinometer_type.name}",
+            inclinometer_type=inclinometer_type,
+        )
     elif device_type == 14:
         return UnknownDevice(device_id=device_id, name="<unknown>")
 
