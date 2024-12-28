@@ -246,8 +246,8 @@ class Communication:
             await self._tcp_writer.drain()
 
             data = await self._tcp_reader.read(2048)
+            logging.debug("Response %r", data)
             response = parse_response(data)
-            logging.debug("Response %r", response)
 
         finally:
             self._last_request_time = time.time()
@@ -260,8 +260,8 @@ class Communication:
 
         assert self._udp_transport is not None
         udp_message = await self._receive_udp()
+        logging.debug("Received %r", udp_message.data)
         response = parse_response(udp_message.data)
-        logging.debug("Received %r", response)
         return response
 
     async def _receive_udp(self) -> _UdpMessage:
