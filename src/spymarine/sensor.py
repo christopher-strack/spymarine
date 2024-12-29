@@ -61,7 +61,7 @@ class BarometerSensor(Sensor):
     UNIT: ClassVar[str] = "mbar"
 
     def convert(self, p: PropertyValue) -> float:
-        return p.number
+        return p.number / 100.0
 
 
 @dataclass
