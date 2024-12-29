@@ -314,7 +314,7 @@ DEVICES_JSON = [
 
 
 SENSOR_DATA = [
-    BarometerSensor(sensor_id=300, value=97983),
+    BarometerSensor(sensor_id=300, value=979.83),
     VoltageSensor(sensor_id=500, value=13.26),
     VoltageSensor(sensor_id=1100, value=0.0),
     VoltageSensor(sensor_id=1200, value=0.035),
@@ -348,7 +348,7 @@ SENSOR_DATA = [
 ]
 
 SENSOR_DATA2 = [
-    BarometerSensor(sensor_id=300, value=98592),
+    BarometerSensor(sensor_id=300, value=985.92),
     VoltageSensor(sensor_id=500, value=13.023),
     VoltageSensor(sensor_id=1100, value=0.0),
     VoltageSensor(sensor_id=1200, value=0.037),
