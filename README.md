@@ -1,3 +1,12 @@
+## ⚠️ Project archived
+
+This project is **no longer maintained**.
+
+A more recent and properly reverse engineered alternative is available here:
+https://github.com/montaguethomas/simarine-python
+
+This repository remains available for reference.
+
 # spymarine
 
 A library for spying on Simarine devices and their sensor values using asyncio and Python
